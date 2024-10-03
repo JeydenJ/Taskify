@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ErrorMessage from "./ErrorMessage";
 
 const Signup = () => {
@@ -7,18 +7,35 @@ const Signup = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [usernameSuccess, setUsernameSuccess] = useState("");
-  const [isUsernameFocused, setIsUsernameFocused] = useState(false);
+  const [isUsernameFocused, setIsUsernameFocused] = useState(true);
+  const [hasBlurredUsername, setHasBlurredUsername] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
+  const [hasTyped, setHasTyped] = useState(false);
 
+  const [isEmailFocused, setIsEmailFocused] = useState(false); // To track input focus
+  const [hasBlurredEmail, setHasBlurredEmail] = useState(false);
+  const [hasEmailTyped, setHasEmailTyped] = useState(false); // Track if the user has typed
+  const [emailError, setEmailError] = useState("");
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const USERNAME_MIN = 1;
   const USERNAME_MAX = 20;
 
-  const usernameError = username.length < USERNAME_MIN && isUsernameFocused
-    ? `Username must be at least ${USERNAME_MIN} characters`
-    : username.length > USERNAME_MAX && isUsernameFocused
-    ? `Username must be at most ${USERNAME_MAX} characters`
-    : '';
+  const isUsernameValid =
+    username.length >= USERNAME_MIN && username.length <= USERNAME_MAX;
+
+  const usernameInputRef = useRef(null); // Create ref for username input
+
+  useEffect(() => {
+    if (usernameInputRef.current) {
+      usernameInputRef.current.focus(); // Set focus
+    }
+  }, []);
+
+  const handleUsernameChange = (e) => {
+    setUsername(e.target.value);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -30,6 +47,41 @@ const Signup = () => {
     setPassword("");
     setConfirmPassword("");
     setError("");
+  };
+
+  const handleUsernameBlur = () => {
+    setIsUsernameFocused(false);
+    setHasBlurredUsername(true);
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value.trim());
+    setHasEmailTyped(true);
+    if (hasBlurredEmail) {
+      validateEmail(e.target.value);
+    }
+  };
+  const handleEmailBlur = () => {
+    setIsEmailFocused(false);
+    setHasBlurredEmail(true);
+    validateEmail(email); // Trigger validation on blur
+  };
+  const validateUsername = () => {
+    if (username.length < USERNAME_MIN) {
+      setUsernameError(`Username must be at least ${USERNAME_MIN} character`);
+    } else if (username.length > USERNAME_MAX) {
+      setUsernameError(`Username must be at most ${USERNAME_MAX} characters`);
+    } else {
+      setUsernameError(""); // Clear error if no conditions are met
+    }
+  };
+
+  const validateEmail = (emailValue) => {
+    if (!emailRegex.test(emailValue) && emailValue.length > 0) {
+      setEmailError("Invalid email format");
+    } else {
+      setEmailError("");
+    }
   };
 
   return (
@@ -47,25 +99,25 @@ const Signup = () => {
           <input
             type="text"
             id="username"
+            ref={usernameInputRef}
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            onFocus={() => setIsUsernameFocused(true)}  // Set focus state to true
-            onBlur={() => setIsUsernameFocused(false)}  // Set focus state to false
+            onChange={handleUsernameChange}
+            onFocus={() => setIsUsernameFocused(true)} // Set focus state to true
+            onBlur={handleUsernameBlur} // Set focus state to false
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
             required
           />
         </div>
-          {/* Using the ErrorMessage component for username validation */}
-          <ErrorMessage 
-            condition={usernameError !== ''}
-            message={usernameError}
-            className="text-red-500"
-          />
-          <ErrorMessage 
-            condition={username.length >= USERNAME_MIN && username.length <= USERNAME_MAX && isUsernameFocused}
-            message= {`Username must be at least ${USERNAME_MIN} characters`}
-            className="text-green-500"
-          />
+        {/* Error messages for username validation */}
+  {username.length < USERNAME_MIN && (
+    <p className="text-red-500">Username needs to be at least 1 character</p>
+  )}
+
+  {/* Valid message when the username is correct */}
+  {username.length >= USERNAME_MIN && username.length <= USERNAME_MAX && !usernameError && isUsernameFocused && (
+    <p className="text-green-500">Username needs to be at least 1 character</p>
+  )}
+        
         <div>
           <label
             htmlFor="email"
@@ -77,10 +129,28 @@ const Signup = () => {
             type="email"
             id="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
+            onFocus={() => setIsEmailFocused(true)}
+            onBlur={handleEmailBlur}
             className="mt-1 block w-full border border-gray-300 rounded-md p-2"
             required
           />
+          {/* Show error if email is invalid and user has typed */}
+          {emailError && hasBlurredEmail && (
+            <ErrorMessage
+              condition={true}
+              message={emailError}
+              className="text-red-500"
+            />
+          )}
+          {/* Show valid message when the email is correct */}
+          {emailRegex.test(email) && isEmailFocused && hasEmailTyped && (
+            <ErrorMessage
+              condition={true}
+              message="Email format is valid"
+              className="text-green-500"
+            />
+          )}
         </div>
         <div>
           <label
