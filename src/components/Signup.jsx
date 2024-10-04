@@ -1,198 +1,128 @@
-import React, { useState, useEffect, useRef } from "react";
-import ErrorMessage from "./ErrorMessage";
+import React, { useState, useEffect } from "react";
+import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth"; // Import Firebase signup function
+import { auth, googleProvider } from "../firebase"; // Import the Firebase auth object
 
 const Signup = () => {
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [isUsernameFocused, setIsUsernameFocused] = useState(true);
-  const [hasBlurredUsername, setHasBlurredUsername] = useState(false);
-  const [usernameError, setUsernameError] = useState("");
-  const [hasTyped, setHasTyped] = useState(false);
+  const [success, setSuccess] = useState("");
 
-  const [isEmailFocused, setIsEmailFocused] = useState(false); // To track input focus
-  const [hasBlurredEmail, setHasBlurredEmail] = useState(false);
-  const [hasEmailTyped, setHasEmailTyped] = useState(false); // Track if the user has typed
-  const [emailError, setEmailError] = useState("");
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  const USERNAME_MIN = 1;
-  const USERNAME_MAX = 20;
-
-  const isUsernameValid =
-    username.length >= USERNAME_MIN && username.length <= USERNAME_MAX;
-
-  const usernameInputRef = useRef(null); // Create ref for username input
-
+  // useEffect to check Firebase connection
   useEffect(() => {
-    if (usernameInputRef.current) {
-      usernameInputRef.current.focus(); // Set focus
-    }
-  }, []);
-
-  const handleUsernameChange = (e) => {
-    setUsername(e.target.value);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Call signup API (to be implemented)
-    console.log("Submitting", { username, email, password });
-    // Clear form after submission
-    setUsername("");
-    setEmail("");
-    setPassword("");
-    setConfirmPassword("");
-    setError("");
-  };
-
-  const handleUsernameBlur = () => {
-    setIsUsernameFocused(false);
-    setHasBlurredUsername(true);
-  };
-
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value.trim());
-    setHasEmailTyped(true);
-    if (hasBlurredEmail) {
-      validateEmail(e.target.value);
-    }
-  };
-  const handleEmailBlur = () => {
-    setIsEmailFocused(false);
-    setHasBlurredEmail(true);
-    validateEmail(email); // Trigger validation on blur
-  };
-  const validateUsername = () => {
-    if (username.length < USERNAME_MIN) {
-      setUsernameError(`Username must be at least ${USERNAME_MIN} character`);
-    } else if (username.length > USERNAME_MAX) {
-      setUsernameError(`Username must be at most ${USERNAME_MAX} characters`);
+    console.log(auth);
+    if (auth) {
+      console.log("Firebase is connected");
     } else {
-      setUsernameError(""); // Clear error if no conditions are met
+      console.log("Firebase connection failed");
     }
-  };
+  }, []); // This runs when the component mounts
 
-  const validateEmail = (emailValue) => {
-    if (!emailRegex.test(emailValue) && emailValue.length > 0) {
-      setEmailError("Invalid email format");
-    } else {
-      setEmailError("");
+  // Handle sign-up function using Firebase
+  const handleSignup = async (e) => {
+    e.preventDefault(); // Prevent form default behavior
+    setError(""); // Reset errors
+
+    // Basic validation
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
     }
+    //   const handleGoogleSignIn = async () => {
+    //     try {
+    //       const result = await signInWithPopup(auth, googleProvider);
+    //       // This gives you a Google Access Token. You can use it to access Google APIs.
+    //       const credential = GoogleAuthProvider.credentialFromResult(result);
+    //       const token = credential.accessToken;
+    //       const user = result.user; // The signed-in user info
+    //       console.log("User info: ", user); // Log user info to the console
+    //     } catch (error) {
+    //       console.error("Error during Google Sign-In: ", error.message);
+    //       // Handle Errors here.
+    //     }
+    //   };
+    //   try {
+    //     // Sign up the user using Firebase auth
+    //     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    //     setSuccess("User registered successfully!");
+    //     console.log("User signed up:", userCredential.user);
+    //   } catch (err) {
+    //     setError(err.message);
+    //     console.error("Error signing up:", err);
+    //   }
+    // };
+
+    return (
+      <div className="max-w-md mx-auto mt-10 p-4 border rounded-lg shadow-lg">
+        <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+
+        {/* Sign-up Form */}
+        <form onSubmit={handleSignup}>
+          {/* Email input */}
+          <div className="mb-4">
+            <label htmlFor="email" className="block text-sm font-medium">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              required
+            />
+          </div>
+
+          {/* Password input */}
+          <div className="mb-4">
+            <label htmlFor="password" className="block text-sm font-medium">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              required
+            />
+          </div>
+
+          {/* Confirm password input */}
+          <div className="mb-4">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium"
+            >
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+              required
+            />
+          </div>
+
+          {/* Error message */}
+          {error && <p className="text-red-500">{error}</p>}
+
+          {/* Success message */}
+          {success && <p className="text-green-500">{success}</p>}
+
+          {/* Submit button */}
+          <button
+            type="submit"
+            className="w-full bg-orange-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
+          >
+            Sign Up
+          </button>
+        </form>
+      </div>
+    );
   };
-
-  return (
-    <div className="max-w-md mx-auto mt-10">
-      <h2 className="text-white text-2xl font-bold mb-4">Sign Up</h2>
-      {error && <p className="text-red-500">{error}</p>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="username"
-            className="text-white block text-sm font-medium"
-          >
-            Username
-          </label>
-          <input
-            type="text"
-            id="username"
-            ref={usernameInputRef}
-            value={username}
-            onChange={handleUsernameChange}
-            onFocus={() => setIsUsernameFocused(true)} // Set focus state to true
-            onBlur={handleUsernameBlur} // Set focus state to false
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            required
-          />
-        </div>
-        {/* Error messages for username validation */}
-  {username.length < USERNAME_MIN && (
-    <p className="text-red-500">Username needs to be at least 1 character</p>
-  )}
-
-  {/* Valid message when the username is correct */}
-  {username.length >= USERNAME_MIN && username.length <= USERNAME_MAX && !usernameError && isUsernameFocused && (
-    <p className="text-green-500">Username needs to be at least 1 character</p>
-  )}
-        
-        <div>
-          <label
-            htmlFor="email"
-            className="text-white block text-sm font-medium"
-          >
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={handleEmailChange}
-            onFocus={() => setIsEmailFocused(true)}
-            onBlur={handleEmailBlur}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            required
-          />
-          {/* Show error if email is invalid and user has typed */}
-          {emailError && hasBlurredEmail && (
-            <ErrorMessage
-              condition={true}
-              message={emailError}
-              className="text-red-500"
-            />
-          )}
-          {/* Show valid message when the email is correct */}
-          {emailRegex.test(email) && isEmailFocused && hasEmailTyped && (
-            <ErrorMessage
-              condition={true}
-              message="Email format is valid"
-              className="text-green-500"
-            />
-          )}
-        </div>
-        <div>
-          <label
-            htmlFor="password"
-            className="text-white block text-sm font-medium"
-          >
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            required
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="confirm-password"
-            className="text-white block text-sm font-medium"
-          >
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            id="confirm-password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-orange-500 text-white rounded-md p-2"
-        >
-          Sign Up
-        </button>
-      </form>
-    </div>
-  );
 };
-
 export default Signup;
