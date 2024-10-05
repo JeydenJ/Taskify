@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth"; // Import Firebase signup function
-import { auth, googleProvider } from "../firebase"; // Import the Firebase auth object
+import { auth } from "../firebase"; // Import the Firebase auth object
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -29,39 +29,26 @@ const Signup = () => {
       setError("Passwords do not match");
       return;
     }
-    //   const handleGoogleSignIn = async () => {
-    //     try {
-    //       const result = await signInWithPopup(auth, googleProvider);
-    //       // This gives you a Google Access Token. You can use it to access Google APIs.
-    //       const credential = GoogleAuthProvider.credentialFromResult(result);
-    //       const token = credential.accessToken;
-    //       const user = result.user; // The signed-in user info
-    //       console.log("User info: ", user); // Log user info to the console
-    //     } catch (error) {
-    //       console.error("Error during Google Sign-In: ", error.message);
-    //       // Handle Errors here.
-    //     }
-    //   };
-    //   try {
-    //     // Sign up the user using Firebase auth
-    //     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    //     setSuccess("User registered successfully!");
-    //     console.log("User signed up:", userCredential.user);
-    //   } catch (err) {
-    //     setError(err.message);
-    //     console.error("Error signing up:", err);
-    //   }
-    // };
+
+    try {
+      // Sign up the user with Firebase
+      await createUserWithEmailAndPassword(auth, email, password);
+      setSuccess("Account created successfully!");
+      setError(""); // Clear any existing errors
+    } catch (err) {
+      setError(err.message); // Display Firebase error message
+    }
+  };
 
     return (
       <div className="max-w-md mx-auto mt-10 p-4 border rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+        <h1 className="text-2xl text-white font-bold mb-4">Sign Up</h1>
 
         {/* Sign-up Form */}
         <form onSubmit={handleSignup}>
           {/* Email input */}
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium">
+            <label htmlFor="email" className="block text-sm text-white font-medium">
               Email
             </label>
             <input
@@ -76,7 +63,7 @@ const Signup = () => {
 
           {/* Password input */}
           <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium">
+            <label htmlFor="password" className="block text-sm text-white font-medium">
               Password
             </label>
             <input
@@ -93,7 +80,7 @@ const Signup = () => {
           <div className="mb-4">
             <label
               htmlFor="confirmPassword"
-              className="block text-sm font-medium"
+              className="block text-sm text-white font-medium"
             >
               Confirm Password
             </label>
@@ -124,5 +111,4 @@ const Signup = () => {
       </div>
     );
   };
-};
 export default Signup;
